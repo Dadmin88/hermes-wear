@@ -11,6 +11,7 @@
   <attr name="hwWarning" format="color" />
   <attr name="hwArtworkBackground" format="color" />
   <attr name="hwArtworkPanel" format="color" />
+  <attr name="hwActionGap" format="dimension" />
   <attr name="hwCornerRadius" format="dimension" />
   <attr name="hwFontFamily" format="string" />
   <string-array name="hermes_theme_ids"><item>royal</item><item>phosphor</item><item>amber</item></string-array>
@@ -29,6 +30,7 @@
     <item name="hwWarning">#FFBE78</item>
     <item name="hwArtworkBackground">#0C041C</item>
     <item name="hwArtworkPanel">#400E91</item>
+    <item name="hwActionGap">12dp</item>
     <item name="hwCornerRadius">16dp</item>
     <item name="hwFontFamily">sans-serif-medium</item>
     <item name="android:colorAccent">?attr/hwAccent</item>
@@ -56,6 +58,7 @@
     <item name="hwWarning">#FFD580</item>
     <item name="hwArtworkBackground">#020906</item>
     <item name="hwArtworkPanel">#0E5936</item>
+    <item name="hwActionGap">12dp</item>
     <item name="hwCornerRadius">16dp</item>
     <item name="hwFontFamily">sans-serif-medium</item>
   </style>
@@ -72,6 +75,7 @@
     <item name="hwWarning">#FFA985</item>
     <item name="hwArtworkBackground">#0C0802</item>
     <item name="hwArtworkPanel">#78501A</item>
+    <item name="hwActionGap">12dp</item>
     <item name="hwCornerRadius">16dp</item>
     <item name="hwFontFamily">sans-serif-medium</item>
   </style>

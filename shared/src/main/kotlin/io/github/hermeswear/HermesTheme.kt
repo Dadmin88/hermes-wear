@@ -65,7 +65,13 @@ class ThemeTokens(context:Context) {
     val cornerRadius=themed.obtainStyledAttributes(intArrayOf(R.attr.hwCornerRadius)).let {a -> try {a.getDimension(0,16f*context.resources.displayMetrics.density)} finally {a.recycle()}}
     val fontFamily=themed.obtainStyledAttributes(intArrayOf(R.attr.hwFontFamily)).let {a -> try {a.getString(0) ?: "sans-serif-medium"} finally {a.recycle()}}
     val typeface:Typeface=Typeface.create(fontFamily,Typeface.NORMAL)
+    private val actionGap=themed.obtainStyledAttributes(intArrayOf(R.attr.hwActionGap)).let {a -> try {a.getDimensionPixelSize(0,0)} finally {a.recycle()}}
     fun styleButton(button:Button,fill:Int=accent) {
+        button.minimumHeight=(48*button.resources.displayMetrics.density).toInt()
+        button.layoutParams=android.widget.LinearLayout.LayoutParams(-1,-2).apply {
+            topMargin=actionGap/2
+            bottomMargin=actionGap-actionGap/2
+        }
         button.setTextColor(if(fill==accent)onAccent else textPrimary)
         button.typeface=typeface
         val shape=GradientDrawable().apply {setColor(fill);cornerRadius=this@ThemeTokens.cornerRadius}

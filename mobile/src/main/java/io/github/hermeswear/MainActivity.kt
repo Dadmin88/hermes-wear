@@ -32,11 +32,6 @@ class MainActivity : Activity() {
         this.text = text
         setAllCaps(false)
         skin.styleButton(this)
-        minimumHeight = dp(48)
-        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-            topMargin = dp(6)
-            bottomMargin = dp(6)
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

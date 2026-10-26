@@ -13,6 +13,7 @@ All visual tokens and the theme catalog live in `shared/src/main/res/values/them
 | `hwTextPrimary`, `hwTextSecondary` | Main content and supporting labels |
 | `hwOutline`, `hwPressed`, `hwWarning` | Bezel outlines, pressed controls and attention state |
 | `hwArtworkBackground`, `hwArtworkPanel` | GPU and fallback artwork colors |
+| `hwActionGap` | Vertical separation between stacked actions |
 | `hwCornerRadius`, `hwFontFamily` | Rounded action controls and interface typography |
 
 ```xml
