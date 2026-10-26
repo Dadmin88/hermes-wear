@@ -1,0 +1,87 @@
+uniform float2 resolution;
+uniform float time;
+uniform float2 gaze;
+uniform float4 mood;
+uniform float3 contact;
+uniform float samples[24];
+
+float bevel(float2 p,float2 b,float cut) {
+    p=abs(p)-b;
+    return max(max(p.x,p.y),(p.x+p.y+cut)*.7071);
+}
+half4 main(float2 pixel) {
+    float s=min(resolution.x,resolution.y);
+    float2 p=(pixel-float2(resolution.x*.5,resolution.y*.43))/s;
+    float2 q=p-gaze*float2(.013,.009);
+    // Deliberate pixel steps, not antialiased liquid glass.
+    q=floor(q*190.0+.5)/190.0;
+    float tap=contact.z;
+    q.x*=1.0+tap*.09;
+    q.y*=1.0-tap*.075;
+    float3 lime=float3(.73,1.0,.16);
+    float3 royal=float3(.25,.055,.57);
+    float3 col=float3(.018,.006,.043);
+    float panel=1.0-smoothstep(-.002,.002,bevel(p,float2(.304,.272),.052));
+    col+=royal*panel*.23;
+    float halo=exp(-length(p/float2(.24,.23))*2.0);
+    col+=royal*halo*.48;
+    // A rolling amplitude history: mic RMS or the synthesized speech envelope.
+    float x=q.x;
+    float index=clamp((x+.245)/.49,0.0,1.0)*23.0;
+    float amp=0.0;
+    amp+=samples[0]*max(0.0,1.0-abs(index-0.0));
+    amp+=samples[1]*max(0.0,1.0-abs(index-1.0));
+    amp+=samples[2]*max(0.0,1.0-abs(index-2.0));
+    amp+=samples[3]*max(0.0,1.0-abs(index-3.0));
+    amp+=samples[4]*max(0.0,1.0-abs(index-4.0));
+    amp+=samples[5]*max(0.0,1.0-abs(index-5.0));
+    amp+=samples[6]*max(0.0,1.0-abs(index-6.0));
+    amp+=samples[7]*max(0.0,1.0-abs(index-7.0));
+    amp+=samples[8]*max(0.0,1.0-abs(index-8.0));
+    amp+=samples[9]*max(0.0,1.0-abs(index-9.0));
+    amp+=samples[10]*max(0.0,1.0-abs(index-10.0));
+    amp+=samples[11]*max(0.0,1.0-abs(index-11.0));
+    amp+=samples[12]*max(0.0,1.0-abs(index-12.0));
+    amp+=samples[13]*max(0.0,1.0-abs(index-13.0));
+    amp+=samples[14]*max(0.0,1.0-abs(index-14.0));
+    amp+=samples[15]*max(0.0,1.0-abs(index-15.0));
+    amp+=samples[16]*max(0.0,1.0-abs(index-16.0));
+    amp+=samples[17]*max(0.0,1.0-abs(index-17.0));
+    amp+=samples[18]*max(0.0,1.0-abs(index-18.0));
+    amp+=samples[19]*max(0.0,1.0-abs(index-19.0));
+    amp+=samples[20]*max(0.0,1.0-abs(index-20.0));
+    amp+=samples[21]*max(0.0,1.0-abs(index-21.0));
+    amp+=samples[22]*max(0.0,1.0-abs(index-22.0));
+    amp+=samples[23]*max(0.0,1.0-abs(index-23.0));
+
+    float activity=clamp(mood.x+mood.z,0.0,1.0);
+    float carrier=sin(x*86.0-time*5.0);
+    float wave=(amp*.15*carrier+.004*sin(x*35.0-time*1.5))*activity;
+    float workingWave=sin(x*38.0-time*3.0)*.023*mood.y;
+    float d=abs(q.y-wave-workingWave);
+    float ends=1.0-smoothstep(.235,.25,abs(x));
+    float trace=exp(-d*400.0)*ends;
+    float bloom=exp(-d*80.0)*ends;
+    col+=lime*(trace*.85+bloom*.16);
+    // Quiet parallel echoes provide depth without inventing sound intensity.
+    col+=royal*exp(-abs(q.y+wave*.65+.036)*200.0)*ends*.7*activity;
+    // Four detached corner brackets give it a terminal/computer identity.
+    float2 corner=abs(p)-float2(.247,.218);
+    float bracket=min(bevel(corner-float2(-.021,0),float2(.025,.003),0.0),bevel(corner-float2(0,-.021),float2(.003,.025),0.0));
+    col+=mix(royal*1.5,lime*.55,mood.x)*exp(-max(bracket,0.0)*650.0);
+    // Tiny segmented data rails animate while processing, never as a fake mic meter.
+    for(int i=0;i<7;i++) {
+        float index=float(i);
+        float tick=bevel(p-float2((index-3.0)*.039,.24),float2(.012,.003),0.0);
+        float selected=1.0-step(.6,abs(index-mod(floor(time*4.0),7.0)));
+        col+=lime*exp(-max(tick,0.0)*750.0)*(.07+mood.y*selected*.65);
+    }
+    float radius=length((pixel-contact.xy)/s);
+    col+=lime*exp(-abs(radius-(.02+(1.0-tap)*.16))*210.0)*tap*.3;
+    // Restrained CRT scanlines. No whole-screen flash or aggressive glitching.
+    float scan=.96+.04*cos(pixel.y*2.0944);
+    col*=scan;
+    col*=1.0-.2*smoothstep(.25,.58,length(p));
+    col=mix(col,col*float3(1.0,.77,.65),mood.w*.3);
+    return half4(half3(clamp(col,0.0,1.0)),1.0);
+}

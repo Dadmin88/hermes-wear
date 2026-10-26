@@ -1,0 +1,20 @@
+<resources>
+  <style name="HermesTheme" parent="android:style/Theme.Material.NoActionBar">
+    <item name="android:colorAccent">#BAFF29</item>
+    <item name="android:colorBackground">#100620</item>
+    <item name="android:windowBackground">#100620</item>
+    <item name="android:textColorPrimary">#F0E5FF</item>
+    <item name="android:textColorSecondary">#B6A0D6</item>
+    <item name="android:colorControlNormal">#B6A0D6</item>
+    <item name="android:colorButtonNormal">#371469</item>
+    <item name="android:alertDialogTheme">@style/HermesDialog</item>
+  </style>
+  <style name="HermesDialog" parent="android:style/Theme.Material.Dialog.Alert">
+    <item name="android:colorAccent">#BAFF29</item>
+    <item name="android:colorBackground">#190A30</item>
+    <item name="android:windowBackground">#190A30</item>
+    <item name="android:textColorPrimary">#F0E5FF</item>
+    <item name="android:textColorSecondary">#B6A0D6</item>
+    <item name="android:colorButtonNormal">#371469</item>
+  </style>
+</resources>

@@ -1,0 +1,30 @@
+# Build
+.gradle/
+build/
+**/build/
+local.properties
+.idea/
+*.apk
+*.aab
+*.jks
+*.keystore
+*.bak.*
+__pycache__/
+*.pyc
+# Secrets
+.env
+.env.*
+!.env.example
+relay/config.json
+runtime/
+
+# Private runtime and signing state
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.pem
+*.key
+*.p12
+*.log
+*.zip
