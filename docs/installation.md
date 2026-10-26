@@ -16,7 +16,7 @@ Outputs:
 - Watch: `wear/build/outputs/apk/debug/wear-debug.apk`
 - Phone: `mobile/build/outputs/apk/debug/mobile-debug.apk`
 
-Android generates a local debug signing key. Preserve that key for future updates. Both apps must use the same signing certificate for Data Layer communication. Never commit signing keys. Public source uses a separate anonymous package from earlier private builds; it does not overwrite or migrate their data.
+Android generates a local debug signing key. Preserve that key for future updates. Both apps must use the same signing certificate for Data Layer communication. Never commit signing keys.
 
 ## Install with a computer
 

@@ -1,6 +1,6 @@
 # Server deployment
 
-This repository contains a generic relay and portable profile, not the maintainer's private fleet automation. Deploy on an always-on host independent of your development computer.
+Deploy the relay and dedicated Hermes profile on an always-on host independent of your development computer.
 
 ## Dedicated Hermes runtime
 
@@ -39,7 +39,7 @@ Use Node.js 22.13+; Node 26 was tested. No npm dependencies need installation. P
 | `WATCH_RELAY_PORT` | Loopback relay port; default 8796 |
 | `WATCH_HERMES_PROVIDER`, `WATCH_HERMES_MODEL` | Optional profile-specific run overrides; no global provider changes |
 
-Generate new random secrets locally; do not reuse administrator/provider credentials. With the environment loaded, run `node relay/server.mjs`. The public CLI requires a persistent database, disables legacy shared-token authentication and disables remote synthesis. Test harnesses still allow injected in-memory stores and synthetic credentials.
+Generate new random secrets locally; do not reuse administrator/provider credentials. With the environment loaded, run `node relay/server.mjs`. The relay CLI requires a persistent database, disables legacy shared-token authentication and disables remote synthesis. Test harnesses still allow injected in-memory stores and synthetic credentials.
 
 Run as a dedicated system service with automatic startup, `Restart=on-failure`, private state, a read-only runtime, `NoNewPrivileges`, hidden unrelated homes, CPU/memory/task limits and bounded journal retention. Keep state across upgrades. Protect the SQLite DB and WAL/SHM files; they contain request/conversation text. Back up consistent SQLite snapshots and private profile state outside Git. Coordinate restore of profile and relay state to preserve run mappings.
 

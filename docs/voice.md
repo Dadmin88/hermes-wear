@@ -21,7 +21,7 @@ Wake detection is OFF by default. It runs locally and does not upload its microp
 
 **Foreground only:** it does not wake a closed app or a sleeping screen. Detection pauses for Settings, focus loss, dictation, accepted pending work, native speech and when remote voice is enabled. It resumes when eligible. Turn it OFF to release listening; turning it ON again retries a failed initialization.
 
-The settings switch reflects your preference; ON is not proof that the microphone is actively listening. The main ready indicator confirms the listener started. “Preparing offline wake word…” is not a ready state. Current setup lacks granular progress; a delayed preparation status eventually completed and wake detection was manually confirmed. Do not diagnose that message alone as a network failure. If preparation never ends, collect device diagnostics rather than repeatedly changing networks.
+The settings switch enables wake detection; the main **Say Hey Hermes** indicator shows when listening is active. **Preparing offline wake word…** means setup is still in progress. If setup does not finish, check device diagnostics for download, storage or model-loading errors.
 
 Vosk uses `vosk-model-small-en-us-0.15`, verified SHA-256 `30f26242c4eb449f948e42cb302dd7a686cb29a3423a8367f99ff41780942498`. Model and recognition library are Apache-2.0. See [notices](../THIRD_PARTY_NOTICES.md).
 
@@ -29,4 +29,4 @@ Vosk uses `vosk-model-small-en-us-0.15`, verified SHA-256 `30f26242c4eb449f948e4
 
 False activations, missed activations, battery consumption, temperature, screen-sleep behavior and a representative speaker/noise accuracy matrix remain unmeasured. The listener is not a hardware low-power hotword service. Always-available background wake requires separate implementation and testing.
 
-The public relay keeps remote synthesis as an injectable interface but ships no private provider helper; remote synthesis is disabled in the CLI. Server transcription of compressed recordings is not implemented. Local Android recognition and TTS are the supported path.
+Remote synthesis has an injectable interface but no configured provider adapter; it is disabled in the relay CLI. Server transcription of compressed recordings is not implemented. Local Android recognition and TTS are the supported path.

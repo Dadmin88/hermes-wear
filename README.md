@@ -4,7 +4,7 @@ A native Kotlin assistant for Wear OS, with an Android companion, a durable auth
 
 The interface is a royal-purple and lime retro terminal waveform: tap the center to speak, read replies with the curved Reply control, and open Settings with the curved Settings control, a left swipe, or a long press. Existing voice, connection, history, approval and text controls remain in Settings.
 
-**Status: 1.0.0-rc10, experimental.** Text conversations, audible replies, in-app dictation and foreground “Hey Hermes” detection have been reported working on a physical Samsung Galaxy Watch6. This is a manual functional confirmation, not completion of the full reliability or battery acceptance matrix. See [validation](docs/validation.md).
+**Status: 1.0.0-rc10, experimental.** Supports text conversations, native speech, in-app dictation and optional foreground “Hey Hermes” detection. See [validation and known limits](docs/validation.md).
 
 ## What is included
 
@@ -23,13 +23,9 @@ The watch prefers authenticated HTTPS. If direct delivery fails, the companion c
 3. Pair the companion with your own relay, then sync the connection to the watch.
 4. [Configure voice and optional wake detection](docs/voice.md).
 
-You need your own Hermes deployment, authorized model provider and HTTPS relay. This source does not connect to the maintainer's infrastructure. Example domains are placeholders.
+You need your own Hermes deployment, authorized model provider and HTTPS relay. Replace example domains with your relay address.
 
-## Privacy and public builds
-
-This public repository starts with a fresh, sanitized history. It excludes private deployment scripts, server names, private domains, device addresses, personal signing keys, credentials, runtime databases, conversations and memories. Public Android builds use package `io.github.hermeswear`, a separate installation from earlier private builds. Do not uninstall a working private app just to try this source.
-
-[Security](SECURITY.md) · [profile provenance](profiles/README.md) · [third-party notices](THIRD_PARTY_NOTICES.md)
+[Security](SECURITY.md) · [profile setup](profiles/README.md) · [third-party notices](THIRD_PARTY_NOTICES.md)
 
 ## License and reference
 
