@@ -42,12 +42,13 @@ class VoiceSettings(private val activity: Activity) {
     private var playbackId:String?=null
     private var playbackStart=0L
     private var visualizationActive=true
-    var onWaveformLevel:((Float)->Unit)?=null
+    var onWaveformLevel:((Float?)->Unit)?=null
+    var onSpeakingChanged:((Boolean)->Unit)?=null
     private val envelopeTick=object:Runnable {
         override fun run() {
             val id=playbackId ?: return
             if(!visualizationActive || !utterances.contains(id)) return
-            onWaveformLevel?.invoke(envelopes[id]?.at(android.os.SystemClock.elapsedRealtime()-playbackStart) ?: 0f)
+            onWaveformLevel?.invoke(envelopes[id]?.at(android.os.SystemClock.elapsedRealtime()-playbackStart))
             speechHandler.postDelayed(this,50)
         }
     }
@@ -80,18 +81,22 @@ class VoiceSettings(private val activity: Activity) {
                         }
                         override fun onStart(utteranceId: String?) { activity.runOnUiThread {
                             if(utteranceId==null || !utterances.contains(utteranceId)) return@runOnUiThread
+                            onSpeakingChanged?.invoke(true)
                             started=true;playbackId=utteranceId;playbackStart=android.os.SystemClock.elapsedRealtime()
                             speechHandler.removeCallbacks(envelopeTick)
                             if(visualizationActive) speechHandler.post(envelopeTick)
                             status("Speaking…")
                             Trace.record(activity,utteranceId.substringBefore(":"),"watch_tts_started")
                         } }
+                        override fun onStop(utteranceId:String?,interrupted:Boolean) {activity.runOnUiThread {
+                            if(utteranceId!=null && utterances.contains(utteranceId)) {stop();status("Speech stopped")}
+                        }}
                         override fun onDone(utteranceId: String?) { activity.runOnUiThread {
                             if(utteranceId==null || !utterances.remove(utteranceId)) return@runOnUiThread
                             envelopes.remove(utteranceId)
-                            if(playbackId==utteranceId) {playbackId=null;speechHandler.removeCallbacks(envelopeTick);onWaveformLevel?.invoke(0f)}
+                            if(playbackId==utteranceId) {playbackId=null;speechHandler.removeCallbacks(envelopeTick);onWaveformLevel?.invoke(null)}
                             remaining=(remaining-1).coerceAtLeast(0)
-                            if(remaining==0) { audio.abandonAudioFocusRequest(focus);status("Speech finished") }
+                            if(remaining==0) { onSpeakingChanged?.invoke(false);audio.abandonAudioFocusRequest(focus);status("Speech finished") }
                         } }
                         override fun onError(utteranceId: String?) { activity.runOnUiThread {if(utteranceId!=null && utterances.contains(utteranceId)) {stop();status("Speech playback failed")}} }
                         override fun onError(utteranceId: String?, errorCode: Int) {
@@ -99,6 +104,7 @@ class VoiceSettings(private val activity: Activity) {
                         }
                     })
                     applySettings()
+                    refreshCapabilities()
                     status(if(available) "Watch voice ready" else "Voice assets unavailable; choose or install a watch voice")
                     pendingSpeech?.let { (message, id) -> pendingSpeech = null; speak(message, id) }
                 } else {
@@ -106,6 +112,18 @@ class VoiceSettings(private val activity: Activity) {
                 }
             }
         },prefs.getString("tts_engine",null))
+    }
+
+    fun refreshCapabilities() {
+        if(!ready)return
+        val caps=org.json.JSONObject()
+        caps.put("engines",org.json.JSONArray().apply {
+            tts?.engines.orEmpty().take(16).forEach {put(org.json.JSONObject().put("id",it.name.take(256)).put("label",it.label.take(160)))}
+        })
+        caps.put("voices",org.json.JSONArray().apply {
+            availableVoices().take(80).forEach {put(org.json.JSONObject().put("id",it.name.take(256)).put("label",(it.locale.displayName+" · "+it.name).take(160)))}
+        })
+        prefs.edit().putString("settings_capabilities",caps.toString()).apply()
     }
 
     private fun availableVoices(): List<Voice> {
@@ -176,7 +194,7 @@ class VoiceSettings(private val activity: Activity) {
         }
     }
 
-    fun stop() { utterances.clear();envelopes.clear();playbackId=null;speechHandler.removeCallbacks(envelopeTick);onWaveformLevel?.invoke(0f); speechGeneration++;pendingSpeech = null; remaining=0;tts?.stop();audio.abandonAudioFocusRequest(focus) }
+    fun stop() { onSpeakingChanged?.invoke(false);utterances.clear();envelopes.clear();playbackId=null;speechHandler.removeCallbacks(envelopeTick);onWaveformLevel?.invoke(null); speechGeneration++;pendingSpeech = null; remaining=0;tts?.stop();audio.abandonAudioFocusRequest(focus) }
     fun close() { stop(); tts?.shutdown(); tts = null; ready = false; available=false }
 
     private val skin by lazy {ThemeTokens(activity)}

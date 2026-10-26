@@ -8,7 +8,7 @@ Tap the center waveform to start in-app Android speech recognition. Grant microp
 
 Android native TextToSpeech is the default reply voice. Settings retains voice enablement, installed voice selection, rate, preview/testing and optional remote voice controls. Check both enabled state and actual engine/asset availability. Text appears independently of speech. New microphone input interrupts playback; long replies are queued. Native TTS does not require paid cloud synthesis.
 
-The purple/lime waveform uses recognition RMS during listening and an amplitude envelope from TTS PCM callbacks during speech. It is an amplitude visualization, not an exact frequency spectrum or guaranteed speaker-clock synchronization. Engines that omit PCM callbacks may show a quieter animation even when speech is audible.
+The purple/lime waveform uses recognition RMS during listening and an amplitude envelope from TTS PCM callbacks during speech. It is an amplitude visualization, not an exact frequency spectrum or guaranteed speaker-clock synchronization. Engines that omit PCM callbacks use an animated speaking pattern tied to confirmed playback start and stop. The fallback indicates playback activity, not measured audio energy.
 
 ## Hey Hermes
 

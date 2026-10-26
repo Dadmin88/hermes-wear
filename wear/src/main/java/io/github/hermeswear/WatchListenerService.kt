@@ -5,6 +5,7 @@ import com.google.android.gms.wearable.WearableListenerService
 /** Own response correlation and persistence even while the Activity is absent. */
 class WatchListenerService:WearableListenerService() {
     override fun onMessageReceived(event:MessageEvent) {
+        if(WatchSettingsBridge.receive(applicationContext,event)) return
         if(event.path=="/hermes-wear/config" && event.data.size<=4096) {
             try {
                 val data=org.json.JSONObject(String(event.data,Charsets.UTF_8))

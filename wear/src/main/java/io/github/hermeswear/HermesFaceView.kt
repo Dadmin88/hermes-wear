@@ -18,6 +18,9 @@ class HermesFaceView(context: Context) : View(context), android.hardware.SensorE
     private val samples=FloatArray(24)
     private var lastSample=0L
     var wakeReady=false
+    var speechLevel:Float?=null
+    var speechActive=false
+        set(value) {field=value;if(!value) {speechLevel=null;samples.fill(0f)};invalidate()}
     var audioLevel=0f
     var transcript=""
         set(value) {field=value;invalidate()}
@@ -96,7 +99,7 @@ class HermesFaceView(context: Context) : View(context), android.hardware.SensorE
         val t=if(animated) SystemClock.elapsedRealtime()/1000f else 0f
         val lower=status.lowercase()
         val listening=lower.startsWith("listening")
-        val speaking=lower.startsWith("speaking") || lower.startsWith("playing")
+        val speaking=speechActive
         val busy=listOf("sending","connecting","accepted","starting","working","queued","recovering","reconnecting").any { lower.contains(it) }
         val attention=listOf("failed","error","unavailable","disconnected","timed out","exceeded","approval","busy").any { lower.contains(it) }
         canvas.drawColor(skin.artworkBackground)
@@ -106,7 +109,7 @@ class HermesFaceView(context: Context) : View(context), android.hardware.SensorE
         val now=SystemClock.elapsedRealtime()
         if(now-lastSample>=50) {
             System.arraycopy(samples,1,samples,0,23)
-            samples[23]=if(listening || speaking) audioLevel.coerceIn(0f,1f) else 0f
+            samples[23]=currentWaveLevel(t,listening)
             lastSample=now
         }
         val gpuDrawn=if(canvas.isHardwareAccelerated) artwork?.let { renderer ->
@@ -116,6 +119,11 @@ class HermesFaceView(context: Context) : View(context), android.hardware.SensorE
         if(!gpuDrawn) drawRetroFallback(canvas,w,h,s,t,speaking,busy)
         drawInterfaceLabels(canvas)
         if(animated) postInvalidateDelayed(if(busy || speaking || listening || reaction>0f) 40L else 80L)
+    }
+    internal fun currentWaveLevel(seconds:Float,listening:Boolean=false):Float=when {
+        listening -> audioLevel.coerceIn(0f,1f)
+        speechActive -> SpeechMotion.level(speechLevel,seconds)
+        else -> 0f
     }
     private fun drawRetroFallback(canvas:Canvas,w:Float,h:Float,s:Float,t:Float,speaking:Boolean,busy:Boolean) {
         val cx=w*.5f+tiltX*s*.013f;val cy=h*.43f+tiltY*s*.009f
@@ -136,7 +144,7 @@ class HermesFaceView(context: Context) : View(context), android.hardware.SensorE
     internal fun drawInterfaceLabels(canvas:Canvas) {
         val w=width.toFloat();val h=height.toFloat();val s=min(w,h);val cx=w/2
         val lower=status.lowercase()
-        val speaking=lower.startsWith("speaking") || lower.startsWith("playing")
+        val speaking=speechActive
         val busy=listOf("sending","connecting","accepted","starting","working","queued","recovering","reconnecting").any {lower.contains(it)}
         val attention=listOf("failed","error","unavailable","disconnected","timed out","exceeded","approval","busy").any {lower.contains(it)}
         val color=skin.warning

@@ -70,6 +70,7 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
     private var accepted=false
     private var recovered=false
     private val inboxListener=android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,key ->
+        if(key=="settings_refresh") handler.post {if(active)recreate()}
         if(key=="turn_response") handler.post { prefs.getString("turn_response",null)?.let { handle(it) } }
     }
     private val watchdog=object:Runnable {
@@ -107,9 +108,11 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
             skin.styleButton(this,color)
         }
 
+    private var appliedSettingsStamp=0L
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeStore.apply(this)
         super.onCreate(savedInstanceState)
+        appliedSettingsStamp=prefs.getLong("settings_refresh",0)
         sessionId = prefs.getString("session", null) ?: UUID.randomUUID().toString().also {
             prefs.edit().putString("session", it).apply()
         }
@@ -137,7 +140,12 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
         layout.addView(label(packageManager.getPackageInfo(packageName, 0).versionName ?: "", 10f, skin.textSecondary).apply {
             gravity = android.view.Gravity.CENTER
         })
-        voiceSettings.onWaveformLevel = { value -> if(this::face.isInitialized && (!this::inAppSpeech.isInitialized || !inAppSpeech.busy)) face.audioLevel=value }
+        voiceSettings.onWaveformLevel = { value -> if(this::face.isInitialized && (!this::inAppSpeech.isInitialized || !inAppSpeech.busy)) face.speechLevel=value }
+        voiceSettings.onSpeakingChanged = {value ->
+            playbackBusy=value
+            if(this::face.isInitialized) face.speechActive=value
+            if(!value && this::stateText.isInitialized && stateText.text.toString().startsWith("Speaking")) stateText.text="Speech stopped"
+        }
         voiceSettings.onPlaybackStatus = { msg ->
             playbackBusy=msg.startsWith("Speaking") || msg.startsWith("Waiting for speech")
             if(pending==null && (!this::inAppSpeech.isInitialized || !inAppSpeech.busy)) stateText.text = msg
@@ -145,6 +153,7 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
         }
         cloudPlayer = NousAudioPlayer(this).apply {
             onStatus = { if(pending==null) stateText.text = it }
+            onPlayingChanged = {value -> if(this@MainActivity::face.isInitialized) {face.speechLevel=null;face.speechActive=value}}
             onPlaybackStarted = {
                 cloudRequestId = ""
                 cloudFallbackText = ""
@@ -674,11 +683,49 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
         Trace.record(this,id,"watch_error_visible")
         if(id.isNotBlank()) reportTrace(id)
     }
+    private fun companionAction(command:JSONObject):String {
+        val action=command.optString("action")
+        if(action in setOf("cancel","approve_once","deny")) require(pending!=null && command.optString("turnId")==pending?.optString("id")) {"Task changed. Refresh watch settings."}
+        when(action) {
+            "talk" -> launchVoice()
+            "system_dictation" -> {inAppSpeech.cancel();launchSystemVoice()}
+            "text" -> {val text=command.optString("text");require(text.isNotBlank() && text.length<=2000){"Enter a message of 1–2000 characters"};require(pending==null){"A task is active"};ask(text)}
+            "speaker_test","voice_preview" -> voiceSettings.speak("Hello, this is Hermes speaking through your watch.","phone-preview-"+UUID.randomUUID())
+            "read_reply" -> {val text=prefs.getString("last_text","") ?: "";require(text.isNotBlank()) {"No reply to read"};if(cloudEnabled)requestCloudVoice(text) else voiceSettings.speak(text,"phone-replay-"+UUID.randomUUID())}
+            "remote_preview" -> {require(prefs.getBoolean("remote_voice_available",false)){"Remote voice unavailable"};requestCloudVoice("Hello, this is Hermes.")}
+            "retry" -> retryTurn()
+            "new_chat" -> newChat()
+            "cancel" -> {val turn=pending!!;val packet=JSONObject().put("op","cancel").put("id",turn.optString("id"));if(runId.isNotBlank())packet.put("runId",runId);sendPacket(packet)}
+            "approve_once","deny" -> {
+                require(command.optString("approvalId")==promptId && command.optInt("approvalGeneration",-1)==generation && promptId.isNotBlank()) {"Approval changed or expired. Refresh."}
+                decide(if(action=="approve_once")"once" else "deny")
+            }
+            "install_assets" -> startActivity(android.content.Intent(android.speech.tts.TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA).apply {prefs.getString("tts_engine",null)?.takeIf {it.isNotBlank()}?.let {setPackage(it)}})
+            "notifications" -> if(android.os.Build.VERSION.SDK_INT>=33)requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),22)
+            "load_task" -> {
+                val task=WatchHistory.all(this).firstOrNull {it.optJSONObject("request")?.optString("id")==command.optString("taskId")} ?: error("Saved task unavailable")
+                val packet=task.getJSONObject("request");val result=task.optJSONObject("result")
+                sessionId=packet.optString("sessionId",sessionId);prefs.edit().putString("session",sessionId).apply()
+                if(result?.optString("state")=="completed") {
+                    pending=null;prefs.edit().remove("pending_turn").remove("turn_response").putString("last_text",result.optString("text")).commit()
+                    answerText.text=result.optString("text");stateText.text="Saved answer"
+                }else {pending=null;request("chat",JSONObject(packet.toString()).put("retry",true))}
+            }
+            else -> error("Unsupported watch action")
+        }
+        return "Action delivered to watch: "+action.replace('_',' ')
+    }
+
     override fun onResume() {
         handler.removeCallbacks(wakeTick);handler.postDelayed(wakeTick,1000)
         if(this::voiceSettings.isInitialized) voiceSettings.setVisualizationActive(true)
         super.onResume()
+        if(prefs.getLong("settings_refresh",0)!=appliedSettingsStamp) {recreate();return}
         active=true
+        WatchSettingsBridge.actionHandler={companionAction(it)}
+        voiceSettings.refreshCapabilities()
+        if(wakeEnabled && checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)!=android.content.pm.PackageManager.PERMISSION_GRANTED)
+            requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO),43)
         prefs.edit().putBoolean("activity_active",true).apply()
         Wearable.getNodeClient(this).connectedNodes.addOnSuccessListener { nodes ->
             nodes.firstOrNull()?.let { Wearable.getMessageClient(this).sendMessage(it.id,"/hermes-wear/config/request",byteArrayOf()) }
@@ -701,6 +748,7 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
         handler.post(watchdog)
     }
     override fun onPause() {
+        WatchSettingsBridge.actionHandler=null
         handler.removeCallbacks(wakeTick)
         if(this::wakeWord.isInitialized) {wakeWord.stop();face.wakeReady=false}
         if(this::voiceSettings.isInitialized) voiceSettings.setVisualizationActive(false)

@@ -52,6 +52,7 @@ class MainActivity : Activity() {
         })
         view.addView(label("Your watch can connect directly to your always-on Hermes relay. This companion handles pairing and Bluetooth fallback.").apply { textSize = 16f })
         view.addView(button("Appearance: " + ThemeStore.selected(this).name).apply {setOnClickListener {ThemeStore.picker(this@MainActivity)}})
+        view.addView(button("Watch settings").apply {setOnClickListener {startActivity(android.content.Intent(this@MainActivity,WatchSettingsActivity::class.java))}})
         view.addView(label("PAIR AUTOMATICALLY", 17f).apply {
             setTextColor(skin.accent)
             typeface = Typeface.DEFAULT_BOLD

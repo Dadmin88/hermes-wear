@@ -22,6 +22,14 @@ class PhoneListenerService : WearableListenerService() {
         ThreadPoolExecutor.AbortPolicy()
     )
     override fun onMessageReceived(event: MessageEvent) {
+        if(event.path=="/hermes-wear/settings/response" && event.data.size<=90000) {
+            try {
+                val reply=JSONObject(String(event.data,Charsets.UTF_8)).put("node",event.sourceNodeId)
+                if(reply.optString("requestId").matches(Regex("[a-zA-Z0-9_-]{8,100}")))
+                    getSharedPreferences("hermes_watch_settings",MODE_PRIVATE).edit().putString("reply",reply.toString()).apply()
+            }catch(_:Exception){}
+            return
+        }
         if(event.path=="/hermes-wear/config/request") {ConnectionSync.send(applicationContext,event.sourceNodeId);return}
         if(event.path=="/hermes-wear/trace" && event.data.size<=9000) {
             val packet=try { JSONObject(String(event.data,Charsets.UTF_8)) } catch (_:Exception) { return }

@@ -9,8 +9,8 @@ android {
     applicationId = "io.github.hermeswear"
     minSdk = 26
     targetSdk = 35
-    versionCode = 9
-    versionName = "1.0.0-rc4"
+    versionCode = 10
+    versionName = "1.0.0-rc5"
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17

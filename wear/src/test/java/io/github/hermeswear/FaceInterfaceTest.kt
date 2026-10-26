@@ -120,6 +120,7 @@ class FaceInterfaceTest {
         val directory=File("build/reports/face-preview").apply {mkdirs()}
         for((name,status) in listOf("ready" to "Ready to talk", "thinking" to "Hermes is working…", "speaking" to "Speaking…", "error" to "Phone disconnected. Reconnect, then Retry.")) {
             face.status=status
+            face.speechActive=status.startsWith("Speaking")
             face.reply="Your next idea starts here."
             assertTrue(face.contentDescription.contains(status))
             val bitmap=Bitmap.createBitmap(480,480,Bitmap.Config.ARGB_8888)

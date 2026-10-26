@@ -11,6 +11,7 @@ import java.io.File
 /** Private MP3 assembly and playback from the paired phone, never the public internet. */
 class NousAudioPlayer(private val context: Context) {
     var onStatus: ((String) -> Unit)? = null
+    var onPlayingChanged: ((Boolean) -> Unit)? = null
     var onPlaybackStarted: (() -> Unit)? = null
     var onPlaybackFailed: ((String) -> Unit)? = null
     private var requestId: String = ""
@@ -86,6 +87,7 @@ class NousAudioPlayer(private val context: Context) {
             player.setOnPreparedListener {
                 try {
                     it.start()
+                    onPlayingChanged?.invoke(true)
                     onPlaybackStarted?.invoke()
                     onStatus?.invoke("Playing Nous voice…")
                 } catch (_: Exception) { fail("Watch cannot play voice") }
@@ -110,6 +112,7 @@ class NousAudioPlayer(private val context: Context) {
     }
 
     private fun releasePlayer() {
+        onPlayingChanged?.invoke(false)
         try { media?.release() } catch (_: Exception) { }
         media = null
         audioFile?.delete()

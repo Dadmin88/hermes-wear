@@ -1,10 +1,10 @@
 # Validation and known limits
 
-Version: 1.0.0-rc11 (release candidate).
+Version: 1.0.0-rc13 (release candidate).
 
 ## Automated verification
 
-- 40 Android unit tests passed, with no failures, errors or skips.
+- 51 Android unit tests passed, with no failures, errors or skips.
 - Watch and phone debug APKs built successfully.
 - Watch and phone lint checks passed.
 - 22 relay tests passed on Node.js 26.12.1.
@@ -24,3 +24,5 @@ Text conversations, native speech output, in-app recognition and foreground “H
 - New server deployments require their own profile-isolation and permission checks.
 
 Automated checks do not establish audible playback, hardware latency or battery performance.
+
+Companion-to-watch settings synchronization and the playback animation require physical-device review for this release.
