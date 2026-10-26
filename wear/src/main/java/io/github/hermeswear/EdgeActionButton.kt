@@ -8,6 +8,7 @@ import kotlin.math.*
 
 /** A real accessible button, painted along the bezel with an annular touch target. */
 class EdgeActionButton(context: Context, label: String, private val left: Boolean) : Button(context) {
+    private val skin=ThemeTokens(context)
     private val ink=Paint(Paint.ANTI_ALIAS_FLAG)
     private val curve=Path()
     init {
@@ -39,14 +40,14 @@ class EdgeActionButton(context: Context, label: String, private val left: Boolea
         val r=d*.425f
         val oval=RectF(centreX-r,centreY-r,centreX+r,centreY+r)
         ink.style=Paint.Style.STROKE;ink.strokeCap=Paint.Cap.ROUND;ink.strokeWidth=d*.096f
-        ink.color=if(isPressed || isFocused) Color.rgb(75,32,139) else Color.rgb(37,14,74)
+        ink.color=if(isPressed || isFocused) skin.pressed else skin.surfaceRaised
         canvas.drawArc(oval,start,sweep,false,ink)
-        ink.strokeWidth=d*.002f;ink.color=Color.rgb(98,56,155)
+        ink.strokeWidth=d*.002f;ink.color=skin.outline
         canvas.drawArc(oval,start,sweep,false,ink)
         // Reverse the lower arc so the letters stay upright as they follow the rim.
         curve.reset();curve.addArc(oval,start+sweep,-sweep)
-        ink.style=Paint.Style.FILL;ink.typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL)
-        ink.textSize=d*.042f;ink.textAlign=Paint.Align.LEFT;ink.color=Color.rgb(186,255,41)
+        ink.style=Paint.Style.FILL;ink.typeface=skin.typeface
+        ink.textSize=d*.042f;ink.textAlign=Paint.Align.LEFT;ink.color=skin.accent
         val length=r*sweep*PI.toFloat()/180f
         canvas.drawTextOnPath(text.toString(),curve,(length-ink.measureText(text.toString()))/2,
             -(ink.ascent()+ink.descent())/2,ink)

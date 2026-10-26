@@ -179,9 +179,10 @@ class VoiceSettings(private val activity: Activity) {
     fun stop() { utterances.clear();envelopes.clear();playbackId=null;speechHandler.removeCallbacks(envelopeTick);onWaveformLevel?.invoke(0f); speechGeneration++;pendingSpeech = null; remaining=0;tts?.stop();audio.abandonAudioFocusRequest(focus) }
     fun close() { stop(); tts?.shutdown(); tts = null; ready = false; available=false }
 
+    private val skin by lazy {ThemeTokens(activity)}
     private fun text(value: String, size: Float = 15f) = TextView(activity).apply {
         text = value
-        setTextColor(android.graphics.Color.rgb(240,229,255))
+        setTextColor(skin.textPrimary)
         textSize = size
         setPadding(12, 12, 12, 12)
     }
@@ -208,13 +209,15 @@ class VoiceSettings(private val activity: Activity) {
         val allVoices = availableVoices()
         val container = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(android.graphics.Color.rgb(25,10,48))
+            setBackgroundColor(skin.surface)
             setPadding(24, 8, 24, 12)
         }
         container.addView(Button(activity).apply {
+            skin.styleButton(this,skin.surfaceRaised)
             text="Choose speech engine";isAllCaps=false;setOnClickListener {chooseEngine()}
         })
         container.addView(Button(activity).apply {
+            skin.styleButton(this,skin.surfaceRaised)
             text="Install voice assets";isAllCaps=false
             setOnClickListener {
                 try {activity.startActivity(android.content.Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA).apply {
@@ -224,7 +227,8 @@ class VoiceSettings(private val activity: Activity) {
         })
         val currentLabel = text("", 13f)
         container.addView(currentLabel)
-        val pick = Button(activity).apply { text = "Choose voice"; isAllCaps = false }
+        val pick = Button(activity).apply {
+            skin.styleButton(this,skin.surfaceRaised); text = "Choose voice"; isAllCaps = false }
         container.addView(pick)
         val speedText = text("Speed: ${"%.2f".format(Locale.US,speed)}×", 13f)
         container.addView(speedText)
@@ -240,7 +244,8 @@ class VoiceSettings(private val activity: Activity) {
             progress = ((pitch - 0.75f) / 0.50f * 100f).toInt().coerceIn(0,100)
         }
         container.addView(pitchControl)
-        val preview = Button(activity).apply { text = "▶ Preview"; isAllCaps = false }
+        val preview = Button(activity).apply {
+            skin.styleButton(this,skin.surfaceRaised); text = "▶ Preview"; isAllCaps = false }
         container.addView(preview)
         fun update() {
             currentLabel.text = if (voiceName.isBlank()) {

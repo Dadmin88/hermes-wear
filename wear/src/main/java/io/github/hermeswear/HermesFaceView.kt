@@ -10,6 +10,7 @@ import kotlin.math.*
 
 /** Decorative expression, never a microphone meter or proof of audible playback. */
 class HermesFaceView(context: Context) : View(context), android.hardware.SensorEventListener {
+    private val skin=ThemeTokens(context)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var artwork:HermesShader?=if(android.os.Build.VERSION.SDK_INT>=33) runCatching {HermesShader(context)}.onFailure {android.util.Log.w("HermesArtwork","Shader compilation failed; using compatibility artwork",it)}.getOrNull() else null
     internal val shaderAvailable get()=artwork!=null
@@ -98,7 +99,7 @@ class HermesFaceView(context: Context) : View(context), android.hardware.SensorE
         val speaking=lower.startsWith("speaking") || lower.startsWith("playing")
         val busy=listOf("sending","connecting","accepted","starting","working","queued","recovering","reconnecting").any { lower.contains(it) }
         val attention=listOf("failed","error","unavailable","disconnected","timed out","exceeded","approval","busy").any { lower.contains(it) }
-        canvas.drawColor(Color.rgb(12,4,28))
+        canvas.drawColor(skin.artworkBackground)
         val reaction=if(animated) (1f-(SystemClock.elapsedRealtime()-touchedAt)/1100f).coerceIn(0f,1f) else 0f
         val target=floatArrayOf(if(listening)1f else 0f,if(busy)1f else 0f,if(speaking)1f else 0f,if(attention)1f else 0f)
         for(i in 0..3) expression[i]+= (target[i]-expression[i])*(if(animated) .18f else 1f)
@@ -118,11 +119,11 @@ class HermesFaceView(context: Context) : View(context), android.hardware.SensorE
     }
     private fun drawRetroFallback(canvas:Canvas,w:Float,h:Float,s:Float,t:Float,speaking:Boolean,busy:Boolean) {
         val cx=w*.5f+tiltX*s*.013f;val cy=h*.43f+tiltY*s*.009f
-        paint.shader=null;paint.style=Paint.Style.FILL;paint.color=Color.rgb(12,4,28)
+        paint.shader=null;paint.style=Paint.Style.FILL;paint.color=skin.artworkBackground
         canvas.drawRect(0f,0f,w,h,paint)
-        paint.color=Color.rgb(41,12,86)
+        paint.color=skin.surfaceRaised
         canvas.drawRoundRect(cx-s*.30f,cy-s*.27f,cx+s*.30f,cy+s*.27f,s*.03f,s*.03f,paint)
-        paint.color=Color.rgb(186,255,41);paint.strokeWidth=s*.005f;paint.style=Paint.Style.STROKE
+        paint.color=skin.accent;paint.strokeWidth=s*.005f;paint.style=Paint.Style.STROKE
         val path=Path()
         for(i in 0..95) {
             val x=(i/95f-.5f)*.49f
@@ -138,16 +139,16 @@ class HermesFaceView(context: Context) : View(context), android.hardware.SensorE
         val speaking=lower.startsWith("speaking") || lower.startsWith("playing")
         val busy=listOf("sending","connecting","accepted","starting","working","queued","recovering","reconnecting").any {lower.contains(it)}
         val attention=listOf("failed","error","unavailable","disconnected","timed out","exceeded","approval","busy").any {lower.contains(it)}
-        val color=Color.rgb(255,190,120)
+        val color=skin.warning
         paint.alpha=255
-        paint.style=Paint.Style.FILL;paint.textAlign=Paint.Align.CENTER;paint.typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL)
+        paint.style=Paint.Style.FILL;paint.textAlign=Paint.Align.CENTER;paint.typeface=skin.typeface
         paint.textSize=s*.031f
-        paint.color=Color.rgb(175,151,216)
+        paint.color=skin.textSecondary
         canvas.drawText("H E R M E S",cx,h*.105f,paint)
-        paint.color=if(attention)color else Color.rgb(226,244,202);paint.textSize=s*.039f
+        paint.color=if(attention)color else skin.textPrimary;paint.textSize=s*.039f
         val caption=when { attention -> "Needs attention"; speaking -> "Speaking"; busy -> "Thinking"; lower.startsWith("listening") -> "Listening"; lower.startsWith("transcribing") -> "Transcribing"; else -> "Tap to speak" }
         canvas.drawText(caption,cx,h*.805f,paint)
-        paint.color=Color.rgb(177,157,208);paint.textSize=s*.027f
+        paint.color=skin.textSecondary;paint.textSize=s*.027f
         val detail=if(transcript.isNotBlank())transcript else if(lower.startsWith("listening")) "Tap to finish" else if(wakeReady) "Say Hey Hermes" else if(attention) "Open settings" else if(reply.isNotBlank() && !reply.startsWith("You:")) "Reply available" else "Hold for settings"
         canvas.drawText(android.text.TextUtils.ellipsize(detail,android.text.TextPaint(paint),s*.36f,android.text.TextUtils.TruncateAt.END).toString(),cx,h*.875f,paint)
     }

@@ -4,7 +4,7 @@ A native Kotlin assistant for Wear OS, with an Android companion, a durable auth
 
 The interface is a royal-purple and lime retro terminal waveform: tap the center to speak, read replies with the curved Reply control, and open Settings with the curved Settings control, a left swipe, or a long press. Existing voice, connection, history, approval and text controls remain in Settings.
 
-**Status: 1.0.0-rc10, experimental.** Supports text conversations, native speech, in-app dictation and optional foreground “Hey Hermes” detection. See [validation and known limits](docs/validation.md).
+**Status: 1.0.0-rc11, experimental.** Supports text conversations, native speech, in-app dictation and optional foreground “Hey Hermes” detection. See [validation and known limits](docs/validation.md).
 
 ## What is included
 
@@ -15,6 +15,10 @@ The interface is a royal-purple and lime retro terminal waveform: tap the center
 - `profiles/hermes-wear/`: portable profile from Hermes Profile Packs: identity, minimal tool configuration and wrist interaction skill. No memories, sessions or credentials.
 
 The watch prefers authenticated HTTPS. If direct delivery fails, the companion can relay through Wear OS Data Layer using the same request ID. Accepted work continues on the server after the app closes; reopening reconciles results. Transport preference has not yet been established by comparative hardware benchmarks.
+
+## Themes
+
+Choose **Settings → Appearance** on the watch or **Appearance** in the companion. Royal Signal (purple/lime), Phosphor and Amber Terminal are included. Shared styles cover the waveform, bezel controls, Settings and dialogs. See [theme creation](docs/themes.md).
 
 ## Start here
 

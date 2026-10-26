@@ -1,10 +1,10 @@
 # Validation and known limits
 
-Version: 1.0.0-rc10 (release candidate).
+Version: 1.0.0-rc11 (release candidate).
 
 ## Automated verification
 
-- 34 Android unit tests passed, with no failures, errors or skips.
+- 40 Android unit tests passed, with no failures, errors or skips.
 - Watch and phone debug APKs built successfully.
 - Watch and phone lint checks passed.
 - 22 relay tests passed on Node.js 26.12.1.

@@ -97,17 +97,18 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
             if(active) handler.postDelayed(this,1000)
         }
     }
+    private val skin by lazy {ThemeTokens(this)}
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
-    private fun label(s: String, size: Float = 14f, tint: Int = Color.WHITE) =
+    private fun label(s: String, size: Float = 14f, tint: Int = skin.textPrimary) =
         TextView(this).apply { text = s; textSize = size; setTextColor(tint); setPadding(0, dp(6), 0, dp(6)) }
-    private fun button(s: String, color: Int = Color.rgb(186,255,41)) =
+    private fun button(s: String, color: Int = skin.accent) =
         Button(this).apply {
             text = s; isAllCaps = false; textSize = 14f
-            setTextColor(if(color==Color.rgb(186,255,41)) Color.rgb(22,7,43) else Color.rgb(240,229,255))
-            backgroundTintList = android.content.res.ColorStateList.valueOf(color)
+            skin.styleButton(this,color)
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeStore.apply(this)
         super.onCreate(savedInstanceState)
         sessionId = prefs.getString("session", null) ?: UUID.randomUUID().toString().also {
             prefs.edit().putString("session", it).apply()
@@ -126,14 +127,14 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(12), dp(18), dp(24))
-            setBackgroundColor(Color.rgb(16,6,32))
+            setBackgroundColor(skin.background)
         }
-        layout.addView(label("✦ HERMES", 21f, Color.rgb(186,255,41)).apply {
+        layout.addView(label("✦ HERMES", 21f, skin.accent).apply {
             gravity = android.view.Gravity.CENTER
             setTypeface(null, android.graphics.Typeface.BOLD)
         })
-        stateText = label("Ready to talk", 12f, Color.rgb(182,160,214)).apply { gravity = android.view.Gravity.CENTER }
-        layout.addView(label(packageManager.getPackageInfo(packageName, 0).versionName ?: "", 10f, Color.rgb(182,160,214)).apply {
+        stateText = label("Ready to talk", 12f, skin.textSecondary).apply { gravity = android.view.Gravity.CENTER }
+        layout.addView(label(packageManager.getPackageInfo(packageName, 0).versionName ?: "", 10f, skin.textSecondary).apply {
             gravity = android.view.Gravity.CENTER
         })
         voiceSettings.onWaveformLevel = { value -> if(this::face.isInitialized && (!this::inAppSpeech.isInitialized || !inAppSpeech.busy)) face.audioLevel=value }
@@ -150,15 +151,16 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
             }
             onPlaybackFailed = { fallbackFromNous(it) }
         }
+        layout.addView(button("Appearance: " + ThemeStore.selected(this).name,skin.surfaceRaised).apply {setOnClickListener {ThemeStore.picker(this@MainActivity)}})
         layout.addView(button("System dictation (separate screen)").apply {setOnClickListener {inAppSpeech.cancel();launchSystemVoice()}})
         wakeEnabled=prefs.getBoolean("wake_word",false)
-        wakeStatus=label(if(wakeEnabled) "Close Settings to listen · app must stay open" else "Wake word off",12f,Color.rgb(182,160,214))
+        wakeStatus=label(if(wakeEnabled) "Close Settings to listen · app must stay open" else "Wake word off",12f,skin.textSecondary)
         wakeButton=android.widget.Switch(this).apply {
             text="Hey Hermes wake word";textOn="ON";textOff="OFF";showText=true
             isChecked=wakeEnabled
-            setTextColor(Color.rgb(240,229,255));setPadding(12,16,12,16)
-            thumbTintList=android.content.res.ColorStateList(arrayOf(intArrayOf(android.R.attr.state_checked),intArrayOf()),intArrayOf(Color.rgb(186,255,41),Color.rgb(182,160,214)))
-            trackTintList=android.content.res.ColorStateList.valueOf(Color.rgb(74,35,125))
+            setTextColor(skin.textPrimary);setPadding(12,16,12,16)
+            thumbTintList=android.content.res.ColorStateList(arrayOf(intArrayOf(android.R.attr.state_checked),intArrayOf()),intArrayOf(skin.accent,skin.textSecondary))
+            trackTintList=android.content.res.ColorStateList.valueOf(skin.pressed)
             setOnClickListener {
                 val toggle=this
                 if(wakeEnabled) {
@@ -178,31 +180,32 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
         layout.addView(wakeButton)
         layout.addView(wakeStatus)
         layout.addView(stateText)
-        promptText = label(prefs.getString("last_input", "") ?: "", 12f, Color.rgb(182,160,214))
+        promptText = label(prefs.getString("last_input", "") ?: "", 12f, skin.textSecondary)
         layout.addView(promptText)
         layout.addView(button("🎙 Talk").apply { setOnClickListener { launchVoice() } })
         entry = EditText(this).apply {
+            setText(savedInstanceState?.getString("typed_draft") ?: "")
             hint = "Type message"
-            setTextColor(Color.WHITE); setHintTextColor(Color.rgb(182,160,214))
+            setTextColor(skin.textPrimary); setHintTextColor(skin.textSecondary)
             textSize = 14f; maxLines = 3
         }
         layout.addView(entry, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(63)))
-        layout.addView(button("Send text", Color.rgb(113,66,178)).apply {
+        layout.addView(button("Send text", skin.surfaceRaised).apply {
             setOnClickListener { ask(entry.text.toString()) }
         })
         approvalPanel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; visibility = View.GONE
         }
-        approveText = label("", 13f, Color.rgb(186,255,41))
+        approveText = label("", 13f, skin.accent)
         approvalPanel.addView(approveText)
         approvalPanel.addView(button("Approve once").apply { setOnClickListener { decide("once") } })
-        approvalPanel.addView(button("Deny", Color.rgb(75,31,139)).apply {
+        approvalPanel.addView(button("Deny", skin.pressed).apply {
             setOnClickListener { decide("deny") }
         })
         layout.addView(approvalPanel)
         answerText = label(prefs.getString("last_text", "Ask Hermes something.") ?: "", 14f)
         layout.addView(answerText)
-        voiceToggle = button("", Color.rgb(113,66,178))
+        voiceToggle = button("", skin.surfaceRaised)
         updateVoice()
         voiceToggle.setOnClickListener {
             speaking = !speaking
@@ -217,7 +220,7 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
             }
         }
         layout.addView(voiceToggle)
-        val cloudToggle = button("", Color.rgb(113,66,178))
+        val cloudToggle = button("", skin.surfaceRaised)
         fun refreshCloudLabel() {
             cloudToggle.text = if (cloudEnabled) "☁ Nous voice: ON" else "☁ Nous voice: OFF"
         }
@@ -232,18 +235,18 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
             }
         }
         layout.addView(cloudToggle)
-        layout.addView(button("☁ Choose Nous voice", Color.rgb(113,66,178)).apply {
+        layout.addView(button("☁ Choose Nous voice", skin.surfaceRaised).apply {
             setOnClickListener { chooseNousVoice() }
         })
-        layout.addView(button("▶ Preview Nous voice", Color.rgb(113,66,178)).apply {
+        layout.addView(button("▶ Preview Nous voice", skin.surfaceRaised).apply {
             setOnClickListener { requestCloudVoice("Hello, I'm Hermes. This voice comes from Nous Portal.") }
         })
-        layout.addView(button("▶ Test speaker", Color.rgb(113,66,178)).apply {
+        layout.addView(button("▶ Test speaker", skin.surfaceRaised).apply {
             setOnClickListener {
                 voiceSettings.speak("Hello, this is Hermes. You should hear me through your watch speaker.", "speaker-test")
             }
         })
-        layout.addView(button("↻ Read last reply", Color.rgb(113,66,178)).apply {
+        layout.addView(button("↻ Read last reply", skin.surfaceRaised).apply {
             setOnClickListener {
                 val previous = prefs.getString("last_text", "") ?: ""
                 if (previous.isBlank()) stateText.text = "No reply to read yet"
@@ -251,10 +254,10 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
                 else voiceSettings.speak(previous, "replay-" + UUID.randomUUID().toString())
             }
         })
-        layout.addView(button("🎛 Choose voice", Color.rgb(113,66,178)).apply {
+        layout.addView(button("🎛 Choose voice", skin.surfaceRaised).apply {
             setOnClickListener { voiceSettings.showSettings() }
         })
-        layout.addView(button("Retry last request", Color.rgb(113,66,178)).apply {
+        layout.addView(button("Retry last request", skin.surfaceRaised).apply {
             setOnClickListener { retryTurn() }
         })
         layout.addView(button("Saved conversations and tasks").apply {
@@ -281,7 +284,7 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
                     }.setNegativeButton("Close",null).show()
             }
         })
-        layout.addView(button("Cancel current task",Color.rgb(75,31,139)).apply {
+        layout.addView(button("Cancel current task",skin.pressed).apply {
             setOnClickListener {
                 val turn=pending
                 if(turn==null)stateText.text="No active task" else {
@@ -303,16 +306,16 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
         layout.addView(button("Open source notices").apply { setOnClickListener {
             val notice=TextView(this@MainActivity).apply {
                 text=resources.openRawResource(R.raw.wake_license).bufferedReader().use {it.readText()}
-                setTextColor(Color.rgb(240,229,255));setPadding(dp(12),dp(12),dp(12),dp(12))
+                setTextColor(skin.textPrimary);setPadding(dp(12),dp(12),dp(12),dp(12))
             }
             android.app.AlertDialog.Builder(this@MainActivity).setTitle("Vosk offline recognition")
                 .setView(ScrollView(this@MainActivity).apply {addView(notice)}).setPositiveButton("Close",null).show()
         } })
-        layout.addView(label("Hermes Wear " + packageManager.getPackageInfo(packageName,0).versionName, 11f, Color.rgb(182,160,214)))
-        layout.addView(button("New chat", Color.rgb(113,66,178)).apply {
+        layout.addView(label("Hermes Wear " + packageManager.getPackageInfo(packageName,0).versionName, 11f, skin.textSecondary))
+        layout.addView(button("New chat", skin.surfaceRaised).apply {
             setOnClickListener { newChat() }
         })
-        controls = android.app.Dialog(this, R.style.HermesTheme).apply {
+        controls = android.app.Dialog(this, ThemeStore.selected(this).style).apply {
             setContentView(ScrollView(this@MainActivity).apply { isFillViewport=true; addView(layout) })
         }
         val root=android.widget.FrameLayout(this)
@@ -360,7 +363,7 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
     }
     private fun showComposer() {
         val input=EditText(this).apply {
-            hint="Message Hermes";setTextColor(Color.WHITE);maxLines=4
+            hint="Message Hermes";setTextColor(skin.textPrimary);maxLines=4
             setPadding(dp(12),dp(8),dp(12),dp(8))
             inputType=android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         }
@@ -709,7 +712,12 @@ class MainActivity : Activity(), MessageClient.OnMessageReceivedListener {
         Wearable.getMessageClient(this).removeListener(this)
         super.onPause()
     }
+    override fun onSaveInstanceState(outState:Bundle) {
+        if(this::entry.isInitialized) outState.putString("typed_draft",entry.text.toString())
+        super.onSaveInstanceState(outState)
+    }
     override fun onDestroy() {
+        if(this::controls.isInitialized) controls.dismiss()
         handler.removeCallbacks(wakeTick)
         if(this::wakeWord.isInitialized) wakeWord.close()
         if(this::inAppSpeech.isInitialized) inAppSpeech.cancel()

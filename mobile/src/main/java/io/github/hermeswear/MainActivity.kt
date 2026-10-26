@@ -14,6 +14,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 
 class MainActivity : Activity() {
+    private val skin by lazy {ThemeTokens(this)}
     private lateinit var settings: PhoneSettings
     private lateinit var address: EditText
     private lateinit var secret: EditText
@@ -24,42 +25,43 @@ class MainActivity : Activity() {
     private fun label(text: String, size: Float = 15f): TextView =
         TextView(this).apply {
             this.text = text; textSize = size
-            setTextColor(Color.rgb(218, 228, 227))
+            setTextColor(skin.textPrimary)
             setPadding(0, dp(10), 0, dp(9))
         }
     private fun button(text: String): Button = Button(this).apply {
         this.text = text
         setAllCaps(false)
-        backgroundTintList = ColorStateList.valueOf(Color.rgb(116, 225, 180))
-        setTextColor(Color.rgb(15, 28, 24))
+        skin.styleButton(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeStore.apply(this)
         super.onCreate(savedInstanceState)
         settings = PhoneSettings(this)
         Diagnostics.flush(applicationContext)
-        window.statusBarColor = Color.rgb(12, 20, 19)
-        window.navigationBarColor = Color.rgb(12, 20, 19)
+        window.statusBarColor = skin.background
+        window.navigationBarColor = skin.background
         val view = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.rgb(12, 20, 19))
+            setBackgroundColor(skin.background)
             setPadding(dp(24), dp(26), dp(24), dp(24))
         }
-        view.addView(label("HERMES  /  WEAR OS  1.0.0-rc1", 25f).apply {
+        view.addView(label("HERMES  /  WEAR OS", 25f).apply {
             typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.rgb(140, 239, 192))
+            setTextColor(skin.accent)
         })
         view.addView(label("Your watch can connect directly to your always-on Hermes relay. This companion handles pairing and Bluetooth fallback.").apply { textSize = 16f })
+        view.addView(button("Appearance: " + ThemeStore.selected(this).name).apply {setOnClickListener {ThemeStore.picker(this@MainActivity)}})
         view.addView(label("PAIR AUTOMATICALLY", 17f).apply {
-            setTextColor(Color.rgb(140, 239, 192))
+            setTextColor(skin.accent)
             typeface = Typeface.DEFAULT_BOLD
         })
         view.addView(label("Enter the short one-time code generated on the relay host. No long token to copy."))
         pairCode = EditText(this).apply {
             setSingleLine(true)
             hint = "XXXX-XXXX-XXXX"
-            setTextColor(Color.WHITE)
-            setHintTextColor(Color.GRAY)
+            setTextColor(skin.textPrimary)
+            setHintTextColor(skin.textSecondary)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
         }
         view.addView(pairCode, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(54)))
@@ -89,7 +91,7 @@ class MainActivity : Activity() {
         }
         view.addView(autoPair)
         view.addView(label("MANUAL CONNECTION (OPTIONAL)", 16f).apply {
-            setTextColor(Color.rgb(140, 239, 192))
+            setTextColor(skin.accent)
         })
         view.addView(label("Relay HTTPS URL"))
         address = EditText(this).apply {
@@ -97,8 +99,8 @@ class MainActivity : Activity() {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             hint = "https://relay.example.com/hermes-wear"
             setText(settings.url)
-            setTextColor(Color.WHITE)
-            setHintTextColor(Color.GRAY)
+            setTextColor(skin.textPrimary)
+            setHintTextColor(skin.textSecondary)
         }
         view.addView(address, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(54)))
         view.addView(label("Device access token (encrypted on each paired device)"))
@@ -107,8 +109,8 @@ class MainActivity : Activity() {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             hint = "Device token"
             setText(settings.token)
-            setTextColor(Color.WHITE)
-            setHintTextColor(Color.GRAY)
+            setTextColor(skin.textPrimary)
+            setHintTextColor(skin.textSecondary)
         }
         view.addView(secret, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(54)))
         status = label("Both apps must be installed and signed with the same key.")
@@ -143,6 +145,15 @@ class MainActivity : Activity() {
             setOnClickListener {ConnectionSync.all(applicationContext);status.text="Connection sent to connected watch"}
         })
         view.addView(label("Credentials are encrypted using Android Keystore. The backend continues accepted tasks when this app closes.", 14f))
+        savedInstanceState?.let {state ->
+            if(state.containsKey("address_draft")) address.setText(state.getString("address_draft"))
+            if(state.containsKey("pair_draft")) pairCode.setText(state.getString("pair_draft"))
+        }
         setContentView(ScrollView(this).apply { addView(view) })
+    }
+    override fun onSaveInstanceState(outState:Bundle) {
+        outState.putString("address_draft",address.text.toString())
+        outState.putString("pair_draft",pairCode.text.toString())
+        super.onSaveInstanceState(outState)
     }
 }

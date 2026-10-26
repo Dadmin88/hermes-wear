@@ -1,0 +1,90 @@
+<resources>
+  <attr name="hwBackground" format="color" />
+  <attr name="hwSurface" format="color" />
+  <attr name="hwSurfaceRaised" format="color" />
+  <attr name="hwAccent" format="color" />
+  <attr name="hwOnAccent" format="color" />
+  <attr name="hwTextPrimary" format="color" />
+  <attr name="hwTextSecondary" format="color" />
+  <attr name="hwOutline" format="color" />
+  <attr name="hwPressed" format="color" />
+  <attr name="hwWarning" format="color" />
+  <attr name="hwArtworkBackground" format="color" />
+  <attr name="hwArtworkPanel" format="color" />
+  <attr name="hwCornerRadius" format="dimension" />
+  <attr name="hwFontFamily" format="string" />
+  <string-array name="hermes_theme_ids"><item>royal</item><item>phosphor</item><item>amber</item></string-array>
+  <string-array name="hermes_theme_names"><item>Royal Signal</item><item>Phosphor</item><item>Amber Terminal</item></string-array>
+  <array name="hermes_theme_styles"><item>@style/HermesTheme</item><item>@style/HermesPhosphor</item><item>@style/HermesAmber</item></array>
+  <style name="HermesTheme" parent="android:style/Theme.Material.NoActionBar">
+    <item name="hwBackground">#100620</item>
+    <item name="hwSurface">#190A30</item>
+    <item name="hwSurfaceRaised">#371469</item>
+    <item name="hwAccent">#BAFF29</item>
+    <item name="hwOnAccent">#16072B</item>
+    <item name="hwTextPrimary">#F0E5FF</item>
+    <item name="hwTextSecondary">#B6A0D6</item>
+    <item name="hwOutline">#62389B</item>
+    <item name="hwPressed">#4B208B</item>
+    <item name="hwWarning">#FFBE78</item>
+    <item name="hwArtworkBackground">#0C041C</item>
+    <item name="hwArtworkPanel">#400E91</item>
+    <item name="hwCornerRadius">16dp</item>
+    <item name="hwFontFamily">sans-serif-medium</item>
+    <item name="android:colorAccent">?attr/hwAccent</item>
+    <item name="android:colorBackground">?attr/hwBackground</item>
+    <item name="android:windowBackground">?attr/hwBackground</item>
+    <item name="android:textColorPrimary">?attr/hwTextPrimary</item>
+    <item name="android:textColorSecondary">?attr/hwTextSecondary</item>
+    <item name="android:textColorHint">?attr/hwTextSecondary</item>
+    <item name="android:colorControlNormal">?attr/hwTextSecondary</item>
+    <item name="android:colorControlActivated">?attr/hwAccent</item>
+    <item name="android:colorButtonNormal">?attr/hwSurfaceRaised</item>
+    <item name="android:fontFamily">?attr/hwFontFamily</item>
+    <item name="android:alertDialogTheme">@style/HermesDialog</item>
+  </style>
+  <style name="HermesPhosphor" parent="HermesTheme">
+    <item name="hwBackground">#030C09</item>
+    <item name="hwSurface">#071B13</item>
+    <item name="hwSurfaceRaised">#123B2B</item>
+    <item name="hwAccent">#83FFAF</item>
+    <item name="hwOnAccent">#04190E</item>
+    <item name="hwTextPrimary">#E5FFED</item>
+    <item name="hwTextSecondary">#9FCFB0</item>
+    <item name="hwOutline">#337D58</item>
+    <item name="hwPressed">#20583D</item>
+    <item name="hwWarning">#FFD580</item>
+    <item name="hwArtworkBackground">#020906</item>
+    <item name="hwArtworkPanel">#0E5936</item>
+    <item name="hwCornerRadius">16dp</item>
+    <item name="hwFontFamily">sans-serif-medium</item>
+  </style>
+  <style name="HermesAmber" parent="HermesTheme">
+    <item name="hwBackground">#100B04</item>
+    <item name="hwSurface">#211708</item>
+    <item name="hwSurfaceRaised">#493415</item>
+    <item name="hwAccent">#FFD166</item>
+    <item name="hwOnAccent">#211400</item>
+    <item name="hwTextPrimary">#FFF3D7</item>
+    <item name="hwTextSecondary">#D7BC8A</item>
+    <item name="hwOutline">#8F6A2A</item>
+    <item name="hwPressed">#664A1D</item>
+    <item name="hwWarning">#FFA985</item>
+    <item name="hwArtworkBackground">#0C0802</item>
+    <item name="hwArtworkPanel">#78501A</item>
+    <item name="hwCornerRadius">16dp</item>
+    <item name="hwFontFamily">sans-serif-medium</item>
+  </style>
+  <style name="HermesDialog" parent="android:style/Theme.Material.Dialog.Alert">
+    <item name="android:colorAccent">?attr/hwAccent</item>
+    <item name="android:colorBackground">?attr/hwSurface</item>
+    <item name="android:windowBackground">?attr/hwSurface</item>
+    <item name="android:textColorPrimary">?attr/hwTextPrimary</item>
+    <item name="android:textColorSecondary">?attr/hwTextSecondary</item>
+    <item name="android:textColorHint">?attr/hwTextSecondary</item>
+    <item name="android:colorControlNormal">?attr/hwTextSecondary</item>
+    <item name="android:colorControlActivated">?attr/hwAccent</item>
+    <item name="android:colorButtonNormal">?attr/hwSurfaceRaised</item>
+    <item name="android:fontFamily">?attr/hwFontFamily</item>
+  </style>
+</resources>
